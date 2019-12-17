@@ -1,16 +1,28 @@
 {
   "name": "ambients-reducer",
   "version": "0.0.1",
-  "description": "",
-  "main": "src/reducer.js",
+  "description": "A reducer for the Ambients protocol ambient calculus ",
+  "main": "src/index.js",
   "scripts": {
     "test": "mocha"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "haadcode <haad@haja.io>",
+  "license": "MIT",
   "devDependencies": {
     "mocha": "^6.2.2"
   },
+  "keywords": [
+    "ambients",
+    "ambients protocol",
+    "protocol",
+    "reducer",
+    "ambients calculus",
+    "calculus"
+  ],
+  "repository": "ambientsprotocol/js-ambients-reducer",
+  "localMaintainers": [
+     "haadcode <haad@haja.io>",
+   ],
   "standard": {
     "env": "mocha",
     "ignore": []
