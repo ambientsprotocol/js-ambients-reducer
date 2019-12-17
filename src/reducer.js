@@ -12,7 +12,7 @@ const {
 
 const Capability = require('../src/capability')
 
-const hasAtomicOperations = (e) => e.op === 'create' || e.op === 'substitute'
+const isAtomicOperation = (e) => e.op === 'create' || e.op === 'substitute'
 
 const applyOperation = (capability, ambient, parent) => {
   // Validate the operation
@@ -29,16 +29,16 @@ const applyOperation = (capability, ambient, parent) => {
   const name = capability.args[0]
   if (!name) throw new Error('Name not found')
 
+  // Get the capability that will be consumed
+  const cap = getCapability(op, name, ambient)
+
   // Process the operation
   if (op === 'create') {
-    const cap = getCapability(op, name, ambient)
-    if (!cap) throw new Error('Capability not found')
-
     const created = create(name, [], capability.next, ambient.meta)
     ambient = addChild(created, ambient)
     ambient = removeCapability(cap, ambient)
 
-    if (created.capabilities.find(hasAtomicOperations)) {
+    if (created.capabilities.find(isAtomicOperation)) {
       const res = reduceAmbient(created, ambient)
       ambient = replaceChild(res.ambient, res.parent)
     }
@@ -51,9 +51,6 @@ const applyOperation = (capability, ambient, parent) => {
     let target = ambient.children.find(e => e.name === targetName)
     if (!target) throw new Error('Target not found!')
 
-    const cap = getCapability(op, name, ambient)
-    if (!cap) throw new Error('Capability not found')
-
     const cocap = target.capabilities.find(e => e.op === 'write_')
     if (!cocap) throw new Error('Co-Capability not found')
 
@@ -62,7 +59,8 @@ const applyOperation = (capability, ambient, parent) => {
     target = consumeCapability(cocap, target)
     target = addMeta(cocap.args, valuesToWrite, target)
     ambient = consumeCapability(cap, ambient)
-    if (target.capabilities.find(hasAtomicOperations)) {
+
+    if (target.capabilities.find(isAtomicOperation)) {
       const res = reduceAmbient(target, ambient)
       ambient = res.parent
       target = res.ambient
@@ -76,9 +74,6 @@ const applyOperation = (capability, ambient, parent) => {
     let target = ambient.children.find(e => e.name === targetName)
     if (!target) throw new Error('Target not found!')
 
-    const cap = getCapability(op, name, ambient)
-    if (!cap) throw new Error('Capability not found')
-
     const cocap = target.capabilities.find(a => a.op === 'read_' && a.args.length === cap.args.length - 1)
 
     if (cocap) {
@@ -91,16 +86,13 @@ const applyOperation = (capability, ambient, parent) => {
         ambient = addMeta(cap.args.slice(1, cap.args.length), values, ambient, parent)
         ambient = consumeCapability(cap, ambient)
 
-        if (ambient.capabilities.find(hasAtomicOperations)) {
+        if (ambient.capabilities.find(isAtomicOperation)) {
           const res = reduceAmbient(ambient, parent)
           ambient = res.ambient
         }
       }
     }
   } else if (op === 'substitute') {
-    const cap = getCapability(op, name, ambient)
-    if (!cap) throw new Error('Capability not found')
-
     const substitute = ambient.meta[name]
     if (!substitute) throw new Error('Substitute value not found from meta')
 
@@ -116,9 +108,6 @@ const applyOperation = (capability, ambient, parent) => {
   } else if (op === 'in') {
     let target = parent.children.find(e => e.name === name)
     if (!target) throw new Error('Target not found!')
-
-    const cap = getCapability(op, name, ambient)
-    if (!cap) throw new Error('Capability not found')
 
     const cocap = target.capabilities.find(e => e.op === 'in_' && e.args[0] === ambient.name)
 
