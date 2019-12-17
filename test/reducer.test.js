@@ -12,7 +12,7 @@ const {
 } = require('../src/reducer')
 
 it('reduces correctly', () => {
-  const file = fs.readFileSync('./test/fixtures/001-function-argument.json')
+  const file = fs.readFileSync('./test/fixtures/001-function-argument-string.json')
   const bytecodeJson = JSON.parse(file)
 
   let program = { parent: null, ambient: fromJson(bytecodeJson) }
@@ -53,7 +53,7 @@ it('reduces correctly', () => {
 })
 
 it('reduces to correct string value', () => {
-  const file = fs.readFileSync('./test/fixtures/001-function-argument.json')
+  const file = fs.readFileSync('./test/fixtures/001-function-argument-string.json')
   const bytecodeJson = JSON.parse(file)
   let program = { parent: null, ambient: fromJson(bytecodeJson) }
 
@@ -68,7 +68,7 @@ it('reduces to correct string value', () => {
 })
 
 it('reduces to correct int value', () => {
-  const file = fs.readFileSync('./test/fixtures/002-function-argument-int.json')
+  const file = fs.readFileSync('./test/fixtures/001-function-argument-int.json')
   const bytecodeJson = JSON.parse(file)
   let program = { parent: null, ambient: fromJson(bytecodeJson) }
 
@@ -79,5 +79,20 @@ it('reduces to correct int value', () => {
   const expected = 5
   console.log('    value:', toValue(program.ambient))
   assert.equal(toValue(program.ambient), expected)
+  assert.equal(program.parent, null)
+})
+
+it('reduces to correct array value', () => {
+  const file = fs.readFileSync('./test/fixtures/001-function-argument-array.json')
+  const bytecodeJson = JSON.parse(file)
+  let program = { parent: null, ambient: fromJson(bytecodeJson) }
+
+  for (let i = 0; i < 5; i++) {
+    program = reduceAmbient(program.ambient, program.parent)
+  }
+
+  const expected = [2, 3]
+  console.log('    value:', toValue(program.ambient))
+  assert.deepEqual(toValue(program.ambient), expected)
   assert.equal(program.parent, null)
 })

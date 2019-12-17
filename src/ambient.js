@@ -119,7 +119,7 @@ const toValue = (ambient) => {
       const rightValue = right.children[0].children[0].name
       return leftValue + rightValue
     } else {
-      return e.children[0]
+      return e.children[0].name
     }
   }
 
@@ -134,8 +134,19 @@ const toValue = (ambient) => {
       const rightValue = right.children[0].children[0].name
       return leftValue + rightValue
     } else {
-      return e.children[0]
+      return e.children[0].name
     }
+  }
+
+  const arrayValue = (e) => {
+    const arrayIdentity = () => []
+    const left = e.children.find(e => e.name === 'l')
+    const right = e.children.find(e => e.name === 'r')
+    if (!left) throw new Error('Left value not found')
+    if (!right) throw new Error('Right value not found')
+    const leftValue = toValue(left) || arrayIdentity()
+    const rightValue = toValue(right)
+    return [...leftValue, rightValue]
   }
 
   // TODO: other primitive types
@@ -146,6 +157,8 @@ const toValue = (ambient) => {
       return stringValue(e)
     } else if (e.name === 'int') {
       return intValue(e)
+    } else if (e.name === 'array') {
+      return arrayValue(e)
     } else {
       // don't know how to transform the ambient to a value
     }
