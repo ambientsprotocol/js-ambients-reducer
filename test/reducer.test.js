@@ -18,12 +18,20 @@ it('reduces correctly', () => {
   let program = { parent: null, ambient: fromJson(bytecodeJson) }
 
   console.log('---- Initial ----')
-  console.log(ambientTreeToString(program.ambient))
+  let currentTree = ambientTreeToString(program.ambient)
 
-  for (let i = 0; i < 5; i++) {
+  console.log(currentTree)
+  let iteration = 1
+  while (true) {
     program = reduceAmbient(program.ambient, program.parent)
-    console.log('--- Step', i + 1, '------------')
-    console.log(ambientTreeToString(program.ambient))
+    let newTree = ambientTreeToString(program.ambient)
+    if (newTree === currentTree) {
+      console.log("--- Reduction done ---")
+      break
+    }
+    console.log('--- Step', iteration++, '------------')
+    console.log(newTree)
+    currentTree = newTree
   }
 
   const expected =
