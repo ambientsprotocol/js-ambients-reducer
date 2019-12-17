@@ -8,30 +8,30 @@ const fromJson = (json) => {
   return create('', [], json.map(Capability.fromOp))
 }
 
-const addChild = (child, parent) => {
-  parent.children.push(child)
-  return parent
+const addChild = (child, ambient) => {
+  ambient.children.push(Object.assign({}, child))
+  return Object.assign({}, ambient)
 }
 
-const removeChild = (child, parent) => {
+const removeChild = (child, ambient) => {
   const isNotEqual = (e) => e.name !== child.name
-  parent.children = parent.children.filter(isNotEqual)
-  return parent
+  ambient.children = ambient.children.filter(isNotEqual)
+  return Object.assign({}, ambient)
 }
 
-const replaceChild = (child, parent) => {
+const replaceChild = (child, ambient) => {
   const isEqual = (e) => e.name === child.name
-  const ambient = parent.children.find(isEqual)
-  if (ambient) {
-    parent = removeChild(child, parent)
-    parent.children.push(child)
+  const target = ambient.children.find(isEqual)
+  if (target) {
+    ambient = removeChild(target, ambient)
+    ambient.children.push(Object.assign({}, child))
   }
-  return parent
+  return Object.assign({}, ambient)
 }
 
 const addCapabilities = (capabilities, ambient) => {
   ambient.capabilities = [...ambient.capabilities, ...capabilities]
-  return ambient
+  return Object.assign({}, ambient)
 }
 
 const getCapability = (op, targetName, ambient) => {
@@ -43,12 +43,14 @@ const getCapability = (op, targetName, ambient) => {
 const removeCapability = (capability, ambient) => {
   const isEqual = (e) => !(e.op === capability.op && e.args[0] === capability.args[0])
   ambient.capabilities = ambient.capabilities.filter(isEqual)
+  // return Object.assign({}, ambient)
   return ambient
 }
 
 const consumeCapability = (capability, ambient) => {
   ambient = removeCapability(capability, ambient)
   ambient.capabilities = [...capability.next, ...ambient.capabilities]
+  // return Object.assign({}, ambient)
   return ambient
 }
 
