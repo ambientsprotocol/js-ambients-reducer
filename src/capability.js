@@ -1,9 +1,13 @@
+const capabilities = ['write', 'in', 'read', 'create', 'substitute']
+const cocapabilities = ['write_', 'in_', 'read_']
+const atomicOps = ['create', 'substitute']
+
 const create = (op, args, next) => {
   return { op, args, next }
 }
 
 const fromOp = (a) => {
-  if (!isValidCapability(a.op) && !isValidCocapability(a.op)) {
+  if (!isValid(a)) {
     throw new Error(`Invalid capability '${a.op}'`)
   }
   return create(a.op, a.args, a.next.map(fromOp))
@@ -14,18 +18,18 @@ const toString = (cap) => {
   return `${cap.op} (${caps})`
 }
 
-const isValidCapability = (op) => {
-  return (op !== 'write' && op !== 'in' && op !== 'read' && op !== 'create' && op !== 'substitute')
-}
-
-const isValidCocapability = (op) => {
-  return (op !== 'write_' && op !== 'in_' && op !== 'read_')
-}
+const isValid = (op) => isValidCapability(op) || isValidCocapability(op)
+const isValidCapability = (e) => capabilities.find(op => op === e.op) !== undefined
+const isValidCocapability = (e) => cocapabilities.find(op => op === e.op) !== undefined
+const isAtomic = (e) => atomicOps.find(op => op === e.op)
 
 module.exports = {
+  atomicOps,
   create,
   fromOp,
   toString,
+  isValid,
   isValidCapability,
-  isValidCocapability
+  isValidCocapability,
+  isAtomic
 }

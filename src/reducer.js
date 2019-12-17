@@ -12,14 +12,10 @@ const {
 
 const Capability = require('../src/capability')
 
-const isAtomicOperation = (e) => e.op === 'create' || e.op === 'substitute'
-
 const applyOperation = (capability, ambient, parent) => {
-  // Validate the operation
+  // Validate the capability
   const op = capability.op
-  if (!Capability.isValidCapability(op) && !Capability.isValidCocapability(op)) {
-    throw new Error(`Invalid capability '${op}'`)
-  }
+  if (!Capability.isValid(capability)) throw new Error(`Invalid capability '${op}'`)
 
   // Make sure to use the source ambient from its parent (latest state from previous reductions)
   ambient = parent ? parent.children.find(e => e.name === ambient.name) : ambient
@@ -38,7 +34,7 @@ const applyOperation = (capability, ambient, parent) => {
     ambient = addChild(created, ambient)
     ambient = removeCapability(cap, ambient)
 
-    if (created.capabilities.find(isAtomicOperation)) {
+    if (created.capabilities.find(Capability.isAtomic)) {
       const res = reduceAmbient(created, ambient)
       ambient = replaceChild(res.ambient, res.parent)
     }
@@ -60,7 +56,7 @@ const applyOperation = (capability, ambient, parent) => {
     target = addMeta(cocap.args, valuesToWrite, target)
     ambient = consumeCapability(cap, ambient)
 
-    if (target.capabilities.find(isAtomicOperation)) {
+    if (target.capabilities.find(Capability.isAtomic)) {
       const res = reduceAmbient(target, ambient)
       ambient = res.parent
       target = res.ambient
@@ -86,7 +82,7 @@ const applyOperation = (capability, ambient, parent) => {
         ambient = addMeta(cap.args.slice(1, cap.args.length), values, ambient, parent)
         ambient = consumeCapability(cap, ambient)
 
-        if (ambient.capabilities.find(isAtomicOperation)) {
+        if (ambient.capabilities.find(Capability.isAtomic)) {
           const res = reduceAmbient(ambient, parent)
           ambient = res.ambient
         }
