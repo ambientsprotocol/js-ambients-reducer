@@ -11,15 +11,10 @@ const {
   reduceAmbient
 } = require('../src/reducer')
 
-it('reduces correctly', () => {
-  const file = fs.readFileSync('./test/fixtures/001-function-argument-string.json')
-  const bytecodeJson = JSON.parse(file)
-
-  let program = { parent: null, ambient: fromJson(bytecodeJson) }
-
+const reduceToNormalForm = (ambient) => {
+  let program = {parent: null, ambient: ambient}
   console.log('---- Initial ----')
   let currentTree = ambientTreeToString(program.ambient)
-
   console.log(currentTree)
   let iteration = 1
   while (true) {
@@ -33,6 +28,14 @@ it('reduces correctly', () => {
     console.log(newTree)
     currentTree = newTree
   }
+  return program
+}
+
+it('reduces correctly', () => {
+  const file = fs.readFileSync('./test/fixtures/001-function-argument-string.json')
+  const bytecodeJson = JSON.parse(file)
+
+  let program = reduceToNormalForm(fromJson(bytecodeJson))
 
   const expected =
 `[]{result:=string[plus[l[string[hello[]]]|r[string[world[]]]]]{in_scope:=in_ (g, pw), fn:=g, x:=create (string), fnresult:=create (string)}}
@@ -63,11 +66,8 @@ it('reduces correctly', () => {
 it('reduces to correct string value', () => {
   const file = fs.readFileSync('./test/fixtures/001-function-argument-string.json')
   const bytecodeJson = JSON.parse(file)
-  let program = { parent: null, ambient: fromJson(bytecodeJson) }
 
-  for (let i = 0; i < 5; i++) {
-    program = reduceAmbient(program.ambient, program.parent)
-  }
+  let program = reduceToNormalForm(fromJson(bytecodeJson))
 
   const expected = 'helloworld'
   console.log('    value:', toValue(program.ambient))
@@ -78,11 +78,7 @@ it('reduces to correct string value', () => {
 it('reduces to correct int value', () => {
   const file = fs.readFileSync('./test/fixtures/001-function-argument-int.json')
   const bytecodeJson = JSON.parse(file)
-  let program = { parent: null, ambient: fromJson(bytecodeJson) }
-
-  for (let i = 0; i < 5; i++) {
-    program = reduceAmbient(program.ambient, program.parent)
-  }
+  let program = reduceToNormalForm(fromJson(bytecodeJson))
 
   const expected = 5
   console.log('    value:', toValue(program.ambient))
@@ -93,11 +89,8 @@ it('reduces to correct int value', () => {
 it('reduces to correct array value', () => {
   const file = fs.readFileSync('./test/fixtures/001-function-argument-array.json')
   const bytecodeJson = JSON.parse(file)
-  let program = { parent: null, ambient: fromJson(bytecodeJson) }
 
-  for (let i = 0; i < 5; i++) {
-    program = reduceAmbient(program.ambient, program.parent)
-  }
+  let program = reduceToNormalForm(fromJson(bytecodeJson))
 
   const expected = [2, 3]
   console.log('    value:', toValue(program.ambient))
