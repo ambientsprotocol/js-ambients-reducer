@@ -108,12 +108,11 @@ const ambientTreeToString = (ambient, printMeta = true) => {
 
 const toValue = (ambient) => {
   const transformToPrimitiveType = (e) => {
-    const primitypeType = primitiveTypes[e.name]
-    return primitypeType ? primitypeType(e, toValue) : null
+    const toPrimititiveType = primitiveTypes[e.name]
+    return toPrimititiveType ? toPrimititiveType(e, toValue) : null
   }
   // Produce a single value
-  const value = ambient.children.map(transformToPrimitiveType).filter(isDefined)
-  return value[0]
+  return ambient.children.map(transformToPrimitiveType).filter(isDefined).shift()
 }
 
 module.exports = {
