@@ -1,0 +1,18 @@
+g[write_ (in_scope).(
+  :in_scope|
+  write_ (x).read_ (x))]|
+f[write_ (in_scope).(
+  :in_scope|
+  write_ (fn, x).(
+    write(fn, x).read(fn, fnresult).(
+      string[
+        plus[
+          l[string[hello[]]]|
+          r[{fnresult}]
+        ]
+      ]|
+      read_ (string)
+    )
+  )
+)]|
+write (g, in (f,pw)).write (f, in_ (g, pw)).write(f, g, string[world[]]).read (f, result).{result}

@@ -1,0 +1,223 @@
+[
+  {
+    "op": "create",
+    "args": [
+      "g"
+    ],
+    "next": [
+      {
+        "next": [
+          {
+            "next": [],
+            "op": "substitute",
+            "args": [
+              "in_scope"
+            ]
+          },
+          {
+            "next": [
+              {
+                "next": [],
+                "op": "read_",
+                "args": [
+                  "x"
+                ]
+              }
+            ],
+            "op": "write_",
+            "args": [
+              "x"
+            ]
+          }
+        ],
+        "op": "write_",
+        "args": [
+          "in_scope"
+        ]
+      }
+    ]
+  },
+  {
+    "op": "create",
+    "args": [
+      "f"
+    ],
+    "next": [
+      {
+        "next": [
+          {
+            "next": [],
+            "op": "substitute",
+            "args": [
+              "in_scope"
+            ]
+          },
+          {
+            "next": [
+              {
+                "next": [
+                  {
+                    "next": [
+                      {
+                        "op": "create",
+                        "args": [
+                          "string"
+                        ],
+                        "next": [
+                          {
+                            "op": "create",
+                            "args": [
+                              "plus"
+                            ],
+                            "next": [
+                              {
+                                "op": "create",
+                                "args": [
+                                  "l"
+                                ],
+                                "next": [
+                                  {
+                                    "op": "create",
+                                    "args": [
+                                      "string"
+                                    ],
+                                    "next": [
+                                      {
+                                        "op": "create",
+                                        "args": [
+                                          "hello"
+                                        ],
+                                        "next": []
+                                      }
+                                    ]
+                                  }
+                                ]
+                              },
+                              {
+                                "op": "create",
+                                "args": [
+                                  "r"
+                                ],
+                                "next": [
+                                  {
+                                    "next": [],
+                                    "op": "substitute",
+                                    "args": [
+                                      "fnresult"
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "next": [],
+                        "op": "read_",
+                        "args": [
+                          "string"
+                        ]
+                      }
+                    ],
+                    "op": "read",
+                    "args": [
+                      "fn",
+                      "fnresult"
+                    ]
+                  }
+                ],
+                "op": "write",
+                "args": [
+                  "fn",
+                  "x"
+                ]
+              }
+            ],
+            "op": "write_",
+            "args": [
+              "fn",
+              "x"
+            ]
+          }
+        ],
+        "op": "write_",
+        "args": [
+          "in_scope"
+        ]
+      }
+    ]
+  },
+  {
+    "next": [
+      {
+        "next": [
+          {
+            "next": [
+              {
+                "next": [
+                  {
+                    "op": "substitute",
+                    "args": [
+                      "result"
+                    ],
+                    "next": []
+                  }
+                ],
+                "op": "read",
+                "args": [
+                  "f",
+                  "result"
+                ]
+              }
+            ],
+            "op": "write",
+            "args": [
+              "f",
+              "g",
+              {
+                "op": "create",
+                "args": [
+                  "string"
+                ],
+                "next": [
+                  {
+                    "op": "create",
+                    "args": [
+                      "world"
+                    ],
+                    "next": []
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "op": "write",
+        "args": [
+          "f",
+          {
+            "next": [],
+            "op": "in_",
+            "args": [
+              "g",
+              "pw"
+            ]
+          }
+        ]
+      }
+    ],
+    "op": "write",
+    "args": [
+      "g",
+      {
+        "next": [],
+        "op": "in",
+        "args": [
+          "f",
+          "pw"
+        ]
+      }
+    ]
+  }
+]
