@@ -12,7 +12,7 @@ const {
 } = require('../src/reducer')
 
 const reduceToNormalForm = (ambient) => {
-  let program = {parent: null, ambient: ambient}
+  let program = { parent: null, ambient: ambient }
   console.log('---- Initial ----')
   let currentTree = ambientTreeToString(program.ambient)
   console.log(currentTree)
@@ -21,7 +21,7 @@ const reduceToNormalForm = (ambient) => {
     program = reduceAmbient(program.ambient, program.parent)
     let newTree = ambientTreeToString(program.ambient)
     if (newTree === currentTree) {
-      console.log("--- Reduction done ---")
+      console.log('--- Reduction done ---')
       break
     }
     console.log('--- Step', iteration++, '------------')
