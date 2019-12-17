@@ -1,4 +1,6 @@
 const Capability = require('./capability')
+const primitiveTypes = require('./primitive-types')
+const { isDefined } = require('./utils')
 
 const create = (name, children, capabilities, meta = {}) => {
   return { name, children, capabilities, meta: Object.assign({}, meta) }
@@ -105,64 +107,12 @@ const ambientTreeToString = (ambient, printMeta = true) => {
 }
 
 const toValue = (ambient) => {
-  const isDefined = (e) => e !== undefined && e !== null
-
-  // Primitive type string
-  const stringValue = (e) => {
-    if (e.children[0].name === 'plus') {
-      const plus = e.children[0]
-      const left = plus.children.find(e => e.name === 'l')
-      const right = plus.children.find(e => e.name === 'r')
-      if (!left) throw new Error('Left value not found')
-      if (!right) throw new Error('Right value not found')
-      const leftValue = left.children[0].children[0].name
-      const rightValue = right.children[0].children[0].name
-      return leftValue + rightValue
-    } else {
-      return e.children[0].name
-    }
+  const transformToPrimitiveType = (e) => {
+    const primitypeType = primitiveTypes[e.name]
+    return primitypeType ? primitypeType(e, toValue) : null
   }
-
-  const intValue = (e) => {
-    if (e.children[0].name === 'plus') {
-      const plus = e.children[0]
-      const left = plus.children.find(e => e.name === 'l')
-      const right = plus.children.find(e => e.name === 'r')
-      if (!left) throw new Error('Left value not found')
-      if (!right) throw new Error('Right value not found')
-      const leftValue = left.children[0].children[0].name
-      const rightValue = right.children[0].children[0].name
-      return leftValue + rightValue
-    } else {
-      return e.children[0].name
-    }
-  }
-
-  const arrayValue = (e) => {
-    const arrayIdentity = () => []
-    const left = e.children.find(e => e.name === 'l')
-    const right = e.children.find(e => e.name === 'r')
-    if (!left) throw new Error('Left value not found')
-    if (!right) throw new Error('Right value not found')
-    const leftValue = toValue(left) || arrayIdentity()
-    const rightValue = toValue(right)
-    return [...leftValue, rightValue]
-  }
-
-  // TODO: other primitive types
-
   // Produce a single value
-  const value = ambient.children.map(e => {
-    if (e.name === 'string') {
-      return stringValue(e)
-    } else if (e.name === 'int') {
-      return intValue(e)
-    } else if (e.name === 'array') {
-      return arrayValue(e)
-    } else {
-      // don't know how to transform the ambient to a value
-    }
-  }).filter(isDefined)
+  const value = ambient.children.map(transformToPrimitiveType).filter(isDefined)
   return value[0]
 }
 
