@@ -14,7 +14,7 @@ const Capability = require('../src/capability')
 
 const hasAtomicOperations = (e) => e.op === 'create' || e.op === 'substitute'
 
-const applyOperation = (capability, ambient, parent, createOnly = false) => {
+const applyOperation = (capability, ambient, parent) => {
   // Validate the operation
   const op = capability.op
   if (!Capability.isValidCapability(op) && !Capability.isValidCocapability(op)) {
@@ -39,14 +39,14 @@ const applyOperation = (capability, ambient, parent, createOnly = false) => {
     ambient = removeCapability(cap, ambient)
 
     if (created.capabilities.find(hasAtomicOperations)) {
-      const res = reduceAmbient(created, ambient, true)
+      const res = reduceAmbient(created, ambient)
       ambient = replaceChild(res.ambient, res.parent)
     }
 
     if (parent) {
       parent = replaceChild(ambient, parent)
     }
-  } else if (op === 'write' && !createOnly) {
+  } else if (op === 'write') {
     const targetName = ambient.meta[name] || name
     let target = ambient.children.find(e => e.name === targetName)
     if (!target) throw new Error('Target not found!')
@@ -63,7 +63,7 @@ const applyOperation = (capability, ambient, parent, createOnly = false) => {
     target = addMeta(cocap.args, valuesToWrite, target)
     ambient = consumeCapability(cap, ambient)
     if (target.capabilities.find(hasAtomicOperations)) {
-      const res = reduceAmbient(target, ambient, true)
+      const res = reduceAmbient(target, ambient)
       ambient = res.parent
       target = res.ambient
     }
@@ -71,7 +71,7 @@ const applyOperation = (capability, ambient, parent, createOnly = false) => {
     if (parent) {
       parent = replaceChild(ambient, parent)
     }
-  } else if (op === 'read' && !createOnly) {
+  } else if (op === 'read') {
     const targetName = ambient.meta[name] || name
     let target = ambient.children.find(e => e.name === targetName)
     if (!target) throw new Error('Target not found!')
@@ -92,7 +92,7 @@ const applyOperation = (capability, ambient, parent, createOnly = false) => {
         ambient = consumeCapability(cap, ambient)
 
         if (ambient.capabilities.find(hasAtomicOperations)) {
-          const res = reduceAmbient(ambient, parent, true)
+          const res = reduceAmbient(ambient, parent)
           ambient = res.ambient
         }
       }
@@ -113,7 +113,7 @@ const applyOperation = (capability, ambient, parent, createOnly = false) => {
       // If the value is an ambient, add it as a child
       ambient = addChild(substitute, ambient)
     }
-  } else if (op === 'in' && !createOnly) {
+  } else if (op === 'in') {
     let target = parent.children.find(e => e.name === name)
     if (!target) throw new Error('Target not found!')
 
@@ -134,9 +134,9 @@ const applyOperation = (capability, ambient, parent, createOnly = false) => {
   return { parent: parent ? Object.assign({}, parent) : parent, ambient: Object.assign({}, ambient) }
 }
 
-const reduceAmbient = (ambient, parent = null, createOnly = false) => {
-  const reduceRec = (res, e) => reduceAmbient(e, res.parent, createOnly)
-  const reduceOne = (res, e) => applyOperation(e, res.ambient, res.parent, createOnly)
+const reduceAmbient = (ambient, parent = null) => {
+  const reduceRec = (res, e) => reduceAmbient(e, res.parent)
+  const reduceOne = (res, e) => applyOperation(e, res.ambient, res.parent)
   const updated1 = ambient.children.reduce(reduceRec, { parent: ambient, ambient: null })
   const updated2 = updated1.parent || updated1.ambient
   const res = updated2.capabilities.reduce(reduceOne, { parent, ambient: updated2 })
