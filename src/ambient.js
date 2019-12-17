@@ -106,6 +106,38 @@ const ambientTreeToString = (ambient, printMeta = true) => {
   return format(ambient, '', true, true)
 }
 
+const toValue = (ambient) => {
+  const isDefined = (e) => e !== undefined && e !== null
+
+  // Primitive type string
+  const stringValue = (e) => {
+    if (e.children[0].name === 'plus') {
+      const plus = e.children[0]
+      const left = plus.children.find(e => e.name === 'l')
+      const right = plus.children.find(e => e.name === 'r')
+      if (!left) throw new Error('Left value not found')
+      if (!right) throw new Error('Right value not found')
+      const leftValue = left.children[0].children[0].name
+      const rightValue = right.children[0].children[0].name
+      return leftValue + rightValue
+    } else {
+      return e.children[0]
+    }
+  }
+
+  // TODO: other primitive types
+
+  // Produce a single value
+  const value = ambient.children.map(e => {
+    if (e.name === 'string') {
+      return stringValue(e)
+    } else {
+      // don't know how to transform the ambient to a value
+    }
+  }).filter(isDefined)
+  return value[0]
+}
+
 module.exports = {
   create,
   fromJson,
@@ -120,5 +152,6 @@ module.exports = {
   metaToString,
   ambientToString,
   ambientToString2,
-  ambientTreeToString
+  ambientTreeToString,
+  toValue
 }

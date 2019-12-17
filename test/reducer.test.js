@@ -3,7 +3,8 @@ const fs = require('fs')
 
 const {
   fromJson,
-  ambientTreeToString
+  ambientTreeToString,
+  toValue
 } = require('../src/ambient')
 
 const {
@@ -48,5 +49,20 @@ it('reduces correctly', () => {
 `
 
   assert.equal(ambientTreeToString(program.ambient), expected)
+  assert.equal(program.parent, null)
+})
+
+it('reduces to correct value', () => {
+  const file = fs.readFileSync('./test/fixtures/001-function-argument.json')
+  const bytecodeJson = JSON.parse(file)
+  let program = { parent: null, ambient: fromJson(bytecodeJson) }
+
+  for (let i = 0; i < 5; i++) {
+    program = reduceAmbient(program.ambient, program.parent)
+  }
+
+  const expected = 'helloworld'
+  console.log("    value:", toValue(program.ambient))
+  assert.equal(toValue(program.ambient), expected)
   assert.equal(program.parent, null)
 })
