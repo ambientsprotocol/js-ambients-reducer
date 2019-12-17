@@ -123,12 +123,29 @@ const toValue = (ambient) => {
     }
   }
 
+  const intValue = (e) => {
+    if (e.children[0].name === 'plus') {
+      const plus = e.children[0]
+      const left = plus.children.find(e => e.name === 'l')
+      const right = plus.children.find(e => e.name === 'r')
+      if (!left) throw new Error('Left value not found')
+      if (!right) throw new Error('Right value not found')
+      const leftValue = left.children[0].children[0].name
+      const rightValue = right.children[0].children[0].name
+      return leftValue + rightValue
+    } else {
+      return e.children[0]
+    }
+  }
+
   // TODO: other primitive types
 
   // Produce a single value
   const value = ambient.children.map(e => {
     if (e.name === 'string') {
       return stringValue(e)
+    } else if (e.name === 'int') {
+      return intValue(e)
     } else {
       // don't know how to transform the ambient to a value
     }

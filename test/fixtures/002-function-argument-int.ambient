@@ -1,0 +1,18 @@
+g[write_ (in_scope).(
+  {in_scope}|
+  write_ (x).read_ (x))]|
+f[write_ (in_scope).(
+  {in_scope}|
+  write_ (fn, x).(
+    write(fn, x).read(fn, fnresult).(
+      int[
+        plus[
+          l[int[2[]]]|
+          r[{fnresult}]
+        ]
+      ]|
+      read_ (int)
+    )
+  )
+)]|
+write (g, in (f,pw)).write (f, in_ (g, pw)).write(f, g, int[3[]]).read (f, result).{result}
