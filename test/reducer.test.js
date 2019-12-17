@@ -62,7 +62,7 @@ it('reduces to correct value', () => {
   }
 
   const expected = 'helloworld'
-  console.log("    value:", toValue(program.ambient))
+  console.log('    value:', toValue(program.ambient))
   assert.equal(toValue(program.ambient), expected)
   assert.equal(program.parent, null)
 })

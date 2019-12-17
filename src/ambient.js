@@ -43,14 +43,12 @@ const getCapability = (op, targetName, ambient) => {
 const removeCapability = (capability, ambient) => {
   const isEqual = (e) => !(e.op === capability.op && e.args[0] === capability.args[0])
   ambient.capabilities = ambient.capabilities.filter(isEqual)
-  // return Object.assign({}, ambient)
   return ambient
 }
 
 const consumeCapability = (capability, ambient) => {
   ambient = removeCapability(capability, ambient)
   ambient.capabilities = [...capability.next, ...ambient.capabilities]
-  // return Object.assign({}, ambient)
   return ambient
 }
 
