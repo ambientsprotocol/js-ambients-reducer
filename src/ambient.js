@@ -57,6 +57,7 @@ const consumeCapability = (capability, ambient) => {
 const addMeta = (args1, args2, ambient, parent) => {
   ambient.meta = args1.reduce((res, acc, i) => {
     const val = args2[i]
+    if (!isDefined(val)) throw new Error("Meta value not found " + acc)
     res[acc] = val
     return res
   }, ambient.meta)
@@ -106,10 +107,23 @@ const ambientTreeToString = (ambient, printMeta = true) => {
   return format(ambient, '', true, true)
 }
 
+const valueToAmbient = (v) => {
+  const transformToAmbient = (e) => {
+    let type
+    if (e.ambient) return e.ambient
+    else if (Array.isArray(e)) type = 'array'
+    else if (typeof e === 'string') type = 'string'
+    else if (typeof e === 'number') type = 'int'
+    const toAmbient = primitiveTypes[type].encode
+    return toAmbient ? toAmbient(e, toAmbient) : null
+  }
+  return transformToAmbient(v)
+}
+
 const toValue = (ambient) => {
   const transformToPrimitiveType = (e) => {
-    const toPrimititiveType = primitiveTypes[e.name]
-    return toPrimititiveType ? toPrimititiveType(e, toValue) : null
+    const type = primitiveTypes[e.name]
+    return type ? type.decode(e, toValue) : null
   }
   // Produce a single value
   return ambient.children.map(transformToPrimitiveType).filter(isDefined).shift()
@@ -130,5 +144,6 @@ module.exports = {
   ambientToString,
   ambientToString2,
   ambientTreeToString,
+  valueToAmbient,
   toValue
 }
