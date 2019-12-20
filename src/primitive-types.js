@@ -1,3 +1,7 @@
+const stringToAmbient = (s) => {
+  return `string[${s}[]]`
+}
+
 const stringValue = (e) => {
   if (e.children[0].name === 'plus') {
     const plus = e.children[0]
@@ -10,6 +14,22 @@ const stringValue = (e) => {
     return leftValue + rightValue
   } else {
     return e.children[0].name
+  }
+}
+
+const intToAmbient = (i) => {
+  return {
+    "op": "create",
+    "args": [
+      "int"
+    ],
+    "next": [
+      {
+        "op": "create",
+        "args": [i],
+        "next": []
+      }
+    ]
   }
 }
 
@@ -28,6 +48,10 @@ const intValue = (e) => {
   }
 }
 
+const arrayToAmbient = (arr, toAmbient) => {
+  return 'array[' + arr.reduce((res, acc) => `l[${res}]|r[${toAmbient(acc)}]`, '') + ']'
+}
+
 const arrayValue = (e, toValue) => {
   const arrayIdentity = () => []
   const left = e.children.find(e => e.name === 'l')
@@ -40,9 +64,9 @@ const arrayValue = (e, toValue) => {
 }
 
 const primitiveTypes = {
-  'string': stringValue,
-  'int': intValue,
-  'array': arrayValue
+  'string': { decode: stringValue, encode: stringToAmbient },
+  'int':  { decode: intValue, encode: intToAmbient },
+  'array':  { decode: arrayValue, encode: arrayToAmbient }
 }
 
 module.exports = primitiveTypes

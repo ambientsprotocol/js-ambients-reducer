@@ -11,6 +11,7 @@ const {
 } = require('../src/ambient')
 
 const Capability = require('../src/capability')
+const { isDefined } = require('../src/utils')
 
 const applyOperation = (capability, ambient, parent) => {
   // Validate the capability
@@ -81,16 +82,16 @@ const applyOperation = (capability, ambient, parent) => {
         target = consumeCapability(cocap, target)
         ambient = addMeta(cap.args.slice(1, cap.args.length), values, ambient, parent)
         ambient = consumeCapability(cap, ambient)
-
         if (ambient.capabilities.find(Capability.isAtomic)) {
           const res = reduceAmbient(ambient, parent)
           ambient = res.ambient
+          if (parent) parent = res.parent
         }
       }
     }
   } else if (op === 'substitute') {
     const substitute = ambient.meta[name]
-    if (!substitute) throw new Error('Substitute value not found from meta')
+    if (!isDefined(substitute)) throw new Error('Substitute value not found from meta')
 
     ambient = consumeCapability(cap, ambient)
 
