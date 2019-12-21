@@ -23,7 +23,8 @@ const applyOperation = (capability, ambient, parent) => {
 
   // Get the operation target's name
   // TODO: is there a case where the target name should be fetched from meta?
-  const name = capability.args[0]
+  const isMetaName = isDefined(capability.args[0].subst)
+  const name = isMetaName ? capability.args[0].subst : capability.args[0]
   if (!name) throw new Error('Name not found')
 
   // Get the capability that will be consumed
@@ -31,17 +32,33 @@ const applyOperation = (capability, ambient, parent) => {
 
   // Process the operation
   if (op === 'create') {
-    const created = create(name, [], capability.next, ambient.meta)
-    ambient = addChild(created, ambient)
-    ambient = removeCapability(cap, ambient)
+    if (isMetaName) {
+      // FIX: this branch is exactly the same as else/if 'substitute', re-use same code
+      const substitute = ambient.meta[name] || name
+      if (!isDefined(substitute)) throw new Error('Substitute value not found from meta')
 
-    if (created.capabilities.find(Capability.isAtomic)) {
-      const res = reduceAmbient(created, ambient)
-      ambient = replaceChild(res.ambient, res.parent)
-    }
+      ambient = consumeCapability(cap, ambient)
 
-    if (parent) {
-      parent = replaceChild(ambient, parent)
+      if (substitute.op) {
+        // If the value is a capability (or an an op), add them as capabilities
+        ambient = addCapabilities([substitute], ambient)
+      } else if (substitute.name) {
+        // If the value is an ambient, add it as a child
+        ambient = addChild(substitute, ambient)
+      }
+    } else {
+      const created = create(name, [], capability.next, ambient.meta)
+      ambient = addChild(created, ambient)
+      ambient = removeCapability(cap, ambient)
+
+      if (created.capabilities.find(Capability.isAtomic)) {
+        const res = reduceAmbient(created, ambient)
+        ambient = replaceChild(res.ambient, res.parent)
+      }
+
+      if (parent) {
+        parent = replaceChild(ambient, parent)
+      }
     }
   } else if (op === 'write') {
     const targetName = ambient.meta[name] || name
@@ -51,7 +68,9 @@ const applyOperation = (capability, ambient, parent) => {
     const cocap = target.capabilities.find(e => e.op === 'write_')
     if (!cocap) throw new Error('Co-Capability not found')
 
-    const valuesToWrite = cap.args.slice(1, cap.args.length).map(e => ambient.meta[e] || e)
+    const valuesToWrite = cap.args.slice(1, cap.args.length).map(e => {
+      return e.subst ? ambient.meta[e.subst] : (ambient.meta[e] || e)
+    })
 
     target = consumeCapability(cocap, target)
     target = addMeta(cocap.args, valuesToWrite, target)
@@ -75,7 +94,7 @@ const applyOperation = (capability, ambient, parent) => {
 
     if (cocap) {
       const isDefined = (e) => e !== undefined && e !== null
-      const findValue = (e) => target.meta[e] || target.children.find(a => a.name === e)
+      const findValue = (e) => e.subst ? target.meta[e.subst] : (target.meta[e] || target.children.find(a => a.name === e))
       const values = cocap.args.map(findValue).filter(isDefined)
 
       if (values.length > 0) {

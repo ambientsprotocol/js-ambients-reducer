@@ -1,0 +1,239 @@
+[
+  {
+    "op": "create",
+    "args": [
+      "g"
+    ],
+    "next": [
+      {
+        "op": "write_",
+        "args": [
+          "in_scope"
+        ],
+        "next": [
+          {
+            "op": "substitute",
+            "args": [
+              {
+                "subst": "in_scope"
+              }
+            ],
+            "next": []
+          },
+          {
+            "op": "write_",
+            "args": [
+              "x"
+            ],
+            "next": [
+              {
+                "op": "read_",
+                "args": [
+                  {
+                    "subst": "x"
+                  }
+                ],
+                "next": []
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "op": "create",
+    "args": [
+      "f"
+    ],
+    "next": [
+      {
+        "op": "write_",
+        "args": [
+          "in_scope"
+        ],
+        "next": [
+          {
+            "op": "substitute",
+            "args": [
+              {
+                "subst": "in_scope"
+              }
+            ],
+            "next": []
+          },
+          {
+            "op": "write_",
+            "args": [
+              "fn",
+              "x"
+            ],
+            "next": [
+              {
+                "op": "write",
+                "args": [
+                  {
+                    "subst": "fn"
+                  },
+                  {
+                    "subst": "x"
+                  }
+                ],
+                "next": [
+                  {
+                    "op": "read",
+                    "args": [
+                      {
+                        "subst": "fn"
+                      },
+                      "fnresult"
+                    ],
+                    "next": [
+                      {
+                        "op": "create",
+                        "args": [
+                          "string"
+                        ],
+                        "next": [
+                          {
+                            "op": "create",
+                            "args": [
+                              "plus"
+                            ],
+                            "next": [
+                              {
+                                "op": "create",
+                                "args": [
+                                  "l"
+                                ],
+                                "next": [
+                                  {
+                                    "op": "create",
+                                    "args": [
+                                      "string"
+                                    ],
+                                    "next": [
+                                      {
+                                        "op": "create",
+                                        "args": [
+                                          "hello"
+                                        ],
+                                        "next": []
+                                      }
+                                    ]
+                                  }
+                                ]
+                              },
+                              {
+                                "op": "create",
+                                "args": [
+                                  "r"
+                                ],
+                                "next": [
+                                  {
+                                    "op": "create",
+                                    "args": [
+                                      {
+                                        "subst": "fnresult"
+                                      }
+                                    ],
+                                    "next": []
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "op": "read_",
+                        "args": [
+                          "string"
+                        ],
+                        "next": []
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "op": "write",
+    "args": [
+      "g",
+      {
+        "op": "in",
+        "args": [
+          "f",
+          "pw"
+        ],
+        "next": []
+      }
+    ],
+    "next": [
+      {
+        "op": "write",
+        "args": [
+          "f",
+          {
+            "op": "in_",
+            "args": [
+              "g",
+              "pw"
+            ],
+            "next": []
+          }
+        ],
+        "next": [
+          {
+            "op": "write",
+            "args": [
+              "f",
+              "g",
+              {
+                "op": "create",
+                "args": [
+                  "string"
+                ],
+                "next": [
+                  {
+                    "op": "create",
+                    "args": [
+                      "world"
+                    ],
+                    "next": []
+                  }
+                ]
+              }
+            ],
+            "next": [
+              {
+                "op": "read",
+                "args": [
+                  "f",
+                  "result"
+                ],
+                "next": [
+                  {
+                    "op": "create",
+                    "args": [
+                      {
+                        "subst": "result"
+                      }
+                    ],
+                    "next": []
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]

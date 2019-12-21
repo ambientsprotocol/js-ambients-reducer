@@ -37,7 +37,7 @@ const addCapabilities = (capabilities, ambient) => {
 }
 
 const getCapability = (op, targetName, ambient) => {
-  const findCapability = (e) => e.op === op && e.args[0] === targetName
+  const findCapability = (e) => e.op === op && (e.args[0].subst ? e.args[0].subst === targetName : e.args[0] === targetName)
   const cap = ambient.capabilities.find(findCapability)
   return cap
 }

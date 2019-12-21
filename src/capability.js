@@ -14,7 +14,7 @@ const fromOp = (a) => {
 }
 
 const toString = (cap) => {
-  const caps = cap.args.map(e => typeof e === 'string' ? e : toString(e)).join(', ')
+  const caps = cap.args.map(e => typeof e === 'string' ? e : (e.subst ? `{${e.subst}}` : toString(e))).join(', ')
   return `${cap.op} (${caps})`
 }
 

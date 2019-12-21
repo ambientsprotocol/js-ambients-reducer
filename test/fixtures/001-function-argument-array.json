@@ -11,7 +11,9 @@
             "next": [],
             "op": "substitute",
             "args": [
-              "in_scope"
+              {
+                "subst": "in_scope"
+              }
             ]
           },
           {
@@ -20,7 +22,9 @@
                 "next": [],
                 "op": "read_",
                 "args": [
-                  "x"
+                  {
+                    "subst": "x"
+                  }
                 ]
               }
             ],
@@ -49,7 +53,9 @@
             "next": [],
             "op": "substitute",
             "args": [
-              "in_scope"
+              {
+                "subst": "in_scope"
+              }
             ]
           },
           {
@@ -120,7 +126,9 @@
                                 "next": [],
                                 "op": "substitute",
                                 "args": [
-                                  "fnresult"
+                                  {
+                                    "subst": "fnresult"
+                                  }
                                 ]
                               }
                             ]
@@ -137,15 +145,21 @@
                     ],
                     "op": "read",
                     "args": [
-                      "fn",
+                      {
+                        "subst": "fn"
+                      },
                       "fnresult"
                     ]
                   }
                 ],
                 "op": "write",
                 "args": [
-                  "fn",
-                  "x"
+                  {
+                    "subst": "fn"
+                  },
+                  {
+                    "subst": "x"
+                  }
                 ]
               }
             ],
@@ -174,7 +188,9 @@
                   {
                     "op": "substitute",
                     "args": [
-                      "result"
+                      {
+                        "subst": "result"
+                      }
                     ],
                     "next": []
                   }

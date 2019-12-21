@@ -97,3 +97,15 @@ it('reduces to correct array value', () => {
   assert.deepEqual(toValue(program.ambient), expected)
   assert.equal(program.parent, null)
 })
+
+it('reduces to correct string value - new', () => {
+  const file = fs.readFileSync('./test/fixtures/001-function-argument.json')
+  const bytecodeJson = JSON.parse(file)
+
+  let program = reduceToNormalForm(fromJson(bytecodeJson))
+
+  const expected = 'helloworld'
+  console.log('    value:', toValue(program.ambient))
+  assert.equal(toValue(program.ambient), expected)
+  assert.equal(program.parent, null)
+})
