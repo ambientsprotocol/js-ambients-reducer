@@ -13,6 +13,15 @@ const {
 const Capability = require('../src/capability')
 const { isDefined } = require('../src/utils')
 
+const applyAtomicOps = (ambient, parent) => {
+  const atomicOps = ambient.capabilities.filter(Capability.isAtomic)
+  if (atomicOps.length > 0) {
+    const reduceOne = (res, e) => applyOperation(e, res.ambient, res.parent)
+    return atomicOps.reduce(reduceOne, { ambient, parent })
+  }
+  return {ambient, parent}
+}
+
 const applyOperation = (capability, ambient, parent) => {
   // Validate the capability
   const op = capability.op
@@ -25,19 +34,18 @@ const applyOperation = (capability, ambient, parent) => {
   // TODO: is there a case where the target name should be fetched from meta?
   const isMetaName = capability.args[0] && isDefined(capability.args[0].subst)
   const name = isMetaName ? capability.args[0].subst : capability.args[0]
-  // if (!name) throw new Error('Name not found')
 
   // Get the capability that will be consumed
   const cap = getCapability(op, name, ambient)
 
   // Process the operation
   if (op === 'create') {
-    if (isMetaName) {
+    if (isMetaName && cap) {
       // FIX: this branch is exactly the same as else/if 'substitute', re-use same code
       const substitute = ambient.meta[name] || name
       if (!isDefined(substitute)) throw new Error('Substitute value not found from meta')
 
-      ambient = consumeCapability(cap, ambient)
+      ambient = removeCapability(cap, ambient)
 
       if (substitute.op) {
         // If the value is a capability (or an an op), add them as capabilities
@@ -46,21 +54,23 @@ const applyOperation = (capability, ambient, parent) => {
         // If the value is an ambient, add it as a child
         ambient = addChild(substitute, ambient)
       }
-    } else {
+
+      const res = applyAtomicOps(ambient, parent)
+      ambient = replaceChild(res.ambient, res.parent)
+    } else if (cap) {
       const created = create(name, [], capability.next, ambient.meta)
       ambient = addChild(created, ambient)
       ambient = removeCapability(cap, ambient)
+      const res = applyAtomicOps(created, ambient)
+      ambient = replaceChild(res.ambient, res.parent)
+    }
 
-      if (created.capabilities.find(Capability.isAtomic)) {
-        const res = reduceAmbient(created, ambient)
-        ambient = replaceChild(res.ambient, res.parent)
-      }
-
-      if (parent) {
-        parent = replaceChild(ambient, parent)
-      }
+    if (parent) {
+      parent = replaceChild(ambient, parent)
     }
   } else if (op === 'write') {
+    if (!cap) throw new Error('Capability not found')
+
     const targetName = ambient.meta[name] || name
     let target = ambient.children.find(e => e.name === targetName)
     if (!target) throw new Error('Target not found!')
@@ -76,11 +86,9 @@ const applyOperation = (capability, ambient, parent) => {
     target = addMeta(cocap.args, valuesToWrite, target)
     ambient = consumeCapability(cap, ambient)
 
-    if (target.capabilities.find(Capability.isAtomic)) {
-      const res = reduceAmbient(target, ambient)
-      ambient = res.parent
-      target = res.ambient
-    }
+    const res = applyAtomicOps(target, ambient)
+    ambient = res.parent
+    target = res.ambient
 
     if (parent) {
       parent = replaceChild(ambient, parent)
@@ -101,14 +109,14 @@ const applyOperation = (capability, ambient, parent) => {
         target = consumeCapability(cocap, target)
         ambient = addMeta(cap.args.slice(1, cap.args.length), values, ambient, parent)
         ambient = consumeCapability(cap, ambient)
-        if (ambient.capabilities.find(Capability.isAtomic)) {
-          const res = reduceAmbient(ambient, parent)
-          ambient = res.ambient
-          if (parent) parent = res.parent
+        const res = applyAtomicOps(ambient, parent)
+        ambient = res.ambient
+        if (parent) {
+          parent = res.parent
         }
       }
     }
-  } else if (op === 'substitute') {
+  } else if (op === 'substitute' && cap) {
     const substitute = ambient.meta[name]
     if (!isDefined(substitute)) throw new Error('Substitute value not found from meta')
 
@@ -117,6 +125,9 @@ const applyOperation = (capability, ambient, parent) => {
     if (substitute.op) {
       // If the value is a capability (or an an op), add them as capabilities
       ambient = addCapabilities([substitute], ambient)
+      // If the new capabilities were atomic, apply them
+      const res = applyAtomicOps(ambient, parent)
+      ambient = replaceChild(res.ambient, res.parent)
     } else if (substitute.name) {
       // If the value is an ambient, add it as a child
       ambient = addChild(substitute, ambient)
