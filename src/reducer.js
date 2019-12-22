@@ -23,9 +23,9 @@ const applyOperation = (capability, ambient, parent) => {
 
   // Get the operation target's name
   // TODO: is there a case where the target name should be fetched from meta?
-  const isMetaName = isDefined(capability.args[0].subst)
+  const isMetaName = capability.args[0] && isDefined(capability.args[0].subst)
   const name = isMetaName ? capability.args[0].subst : capability.args[0]
-  if (!name) throw new Error('Name not found')
+  // if (!name) throw new Error('Name not found')
 
   // Get the capability that will be consumed
   const cap = getCapability(op, name, ambient)
