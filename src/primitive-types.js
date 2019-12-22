@@ -1,33 +1,52 @@
 const stringToAmbient = (s) => {
-  return `string[${s}[]]`
+  return {
+    op: "create",
+    args: [
+      "string"
+    ],
+    next: [
+      {
+        op: "create",
+        args: [s],
+        next: []
+      }
+    ]
+  }
 }
 
-const stringValue = (e) => {
-  if (e.children[0].name === 'plus') {
-    const plus = e.children[0]
-    const left = plus.children.find(e => e.name === 'l')
-    const right = plus.children.find(e => e.name === 'r')
+const stringValue = (e, toValue) => {
+  const concatStrings = (e) => {
+    const left = e.children.find(e => e.name === 'l')
+    const right = e.children.find(e => e.name === 'r')
     if (!left) throw new Error('Left value not found')
     if (!right) throw new Error('Right value not found')
-    const leftValue = left.children[0].children[0].name
-    const rightValue = right.children[0].children[0].name
+    const leftValue = stringValue(left.children[0])
+    const rightValue =  stringValue(right.children[0].children[0])
     return leftValue + rightValue
-  } else {
+  }
+
+  if (e.children[0] && e.children[0].name === 'plus') {
+    return concatStrings(e.children[0])
+  } else if (e.name === 'plus' && e.children[0]){
+    return concatStrings(e)
+  } else if (e.name === 'string' && e.children[0]){
     return e.children[0].name
+  } else {
+    return e.name
   }
 }
 
 const intToAmbient = (i) => {
   return {
-    "op": "create",
-    "args": [
+    op: "create",
+    args: [
       "int"
     ],
-    "next": [
+    next: [
       {
-        "op": "create",
-        "args": [i],
-        "next": []
+        op: "create",
+        args: [i],
+        next: []
       }
     ]
   }
