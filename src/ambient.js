@@ -57,8 +57,9 @@ const consumeCapability = (capability, ambient) => {
 const addMeta = (args1, args2, ambient, parent) => {
   ambient.meta = args1.reduce((res, acc, i) => {
     const val = args2[i]
-    if (!isDefined(val)) throw new Error("Meta value not found " + acc)
-    res[acc] = val
+    if (isDefined(val)) {
+      res[acc] = val
+    }
     return res
   }, ambient.meta)
   return ambient
