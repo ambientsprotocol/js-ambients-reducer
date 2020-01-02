@@ -7,28 +7,29 @@ const {
   getCapability,
   removeCapability,
   consumeCapability,
+  toValue,
   addMeta
 } = require('../src/ambient')
 
 const Capability = require('../src/capability')
 const { isDefined } = require('../src/utils')
 
-const applyAtomicOps = (ambient, parent) => {
+const applyAtomicOps = (ambient, parent, callback, step) => {
   const atomicOps = ambient.capabilities.filter(Capability.isAtomic)
   if (atomicOps.length > 0) {
-    const reduceOne = (res, e) => applyOperation(e, res.ambient, res.parent)
+    const reduceOne = (res, e) => applyOperation(e, res.ambient, res.parent, callback, step)
     return atomicOps.reduce(reduceOne, { ambient, parent })
   }
   return {ambient, parent}
 }
 
-const applyOperation = (capability, ambient, parent) => {
+const applyOperation = (capability, ambient, parent, callback, step = -1) => {
   // Validate the capability
   const op = capability.op
   if (!Capability.isValid(capability)) throw new Error(`Invalid capability '${op}'`)
 
   // Make sure to use the source ambient from its parent (latest state from previous reductions)
-  ambient = parent ? parent.children.find(e => e.name === ambient.name) : ambient
+  // ambient = parent ? parent.children.find(e => e.name === ambient.name) : ambient
 
   // Get the operation target's name
   // TODO: is there a case where the target name should be fetched from meta?
@@ -55,16 +56,22 @@ const applyOperation = (capability, ambient, parent) => {
         ambient = addChild(substitute, ambient)
       }
 
-      const res = applyAtomicOps(ambient, parent)
-      ambient = replaceChild(res.ambient, res.parent)
+      if (callback) {
+        callback('create', capability, ambient, step, { source: ambient.name, target: substitute })
+      }
+
+      const res = applyAtomicOps(ambient, parent, callback, step)
+      if (res.parent) ambient = replaceChild(res.ambient, res.parent)
     } else if (cap) {
       const created = create(name, [], capability.next, ambient.meta)
       ambient = addChild(created, ambient)
       ambient = removeCapability(cap, ambient)
-      const res = applyAtomicOps(created, ambient)
+      if (callback) {
+        callback('create', capability, ambient, step, { source: ambient.name, target: name })
+      }
+      const res = applyAtomicOps(created, ambient, callback, step)
       ambient = replaceChild(res.ambient, res.parent)
     }
-
     if (parent) {
       parent = replaceChild(ambient, parent)
     }
@@ -86,9 +93,13 @@ const applyOperation = (capability, ambient, parent) => {
     target = addMeta(cocap.args, valuesToWrite, target)
     ambient = consumeCapability(cap, ambient)
 
-    const res = applyAtomicOps(target, ambient)
+    if (callback) {
+      callback('write', cap, ambient, step, { source: ambient.name, target: name, args: valuesToWrite })
+      callback('write_', cocap, target, step, { source: name, caller: ambient.name, args: cocap.args })
+    }
+
+    const res = applyAtomicOps(target, ambient, callback, step)
     ambient = res.parent
-    target = res.ambient
 
     if (parent) {
       parent = replaceChild(ambient, parent)
@@ -109,7 +120,13 @@ const applyOperation = (capability, ambient, parent) => {
         target = consumeCapability(cocap, target)
         ambient = addMeta(cap.args.slice(1, cap.args.length), values, ambient, parent)
         ambient = consumeCapability(cap, ambient)
-        const res = applyAtomicOps(ambient, parent)
+
+        if (callback) {
+          callback('read', cap, ambient, step, { source: ambient.name, target: cap.args[0], args: cap.args })
+          callback('read_', cocap, target, step, { source: name, caller: ambient.name, values: values })
+        }
+
+        const res = applyAtomicOps(ambient, parent, callback, step)
         ambient = res.ambient
         if (parent) {
           parent = res.parent
@@ -126,11 +143,15 @@ const applyOperation = (capability, ambient, parent) => {
       // If the value is a capability (or an an op), add them as capabilities
       ambient = addCapabilities([substitute], ambient)
       // If the new capabilities were atomic, apply them
-      const res = applyAtomicOps(ambient, parent)
+      const res = applyAtomicOps(ambient, parent, callback, step)
       ambient = replaceChild(res.ambient, res.parent)
     } else if (substitute.name) {
       // If the value is an ambient, add it as a child
       ambient = addChild(substitute, ambient)
+    }
+
+    if (callback) {
+      callback('substitute', cap, ambient, step, { source: ambient.name, target: name, value: substitute })
     }
   } else if (op === 'in') {
     let target = parent.children.find(e => e.name === name)
@@ -144,15 +165,20 @@ const applyOperation = (capability, ambient, parent) => {
       target = consumeCapability(cocap, target)
       parent = removeChild(ambient, parent)
       parent = replaceChild(target, parent)
+
+      if (callback) {
+        callback('in', cap, ambient, step)
+        callback('in_', cocap, target, step)
+      }
     }
   }
 
   return { parent: parent ? Object.assign({}, parent) : parent, ambient: Object.assign({}, ambient) }
 }
 
-const reduceAmbient = (ambient, parent = null) => {
-  const reduceRec = (res, e) => reduceAmbient(e, res.parent)
-  const reduceOne = (res, e) => applyOperation(e, res.ambient, res.parent)
+const reduceAmbient = (ambient, parent = null, callback, step = 0) => {
+  const reduceRec = (res, e) => reduceAmbient(e, res.parent, callback, step)
+  const reduceOne = (res, e) => applyOperation(e, res.ambient, res.parent, callback, step)
   const updated1 = ambient.children.reduce(reduceRec, { parent: ambient, ambient: null })
   const updated2 = updated1.parent || updated1.ambient
   const res = updated2.capabilities.reduce(reduceOne, { parent, ambient: updated2 })

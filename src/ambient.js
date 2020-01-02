@@ -23,7 +23,7 @@ const removeChild = (child, ambient) => {
 
 const replaceChild = (child, ambient) => {
   const isEqual = (e) => e.name === child.name
-  const target = ambient.children.find(isEqual)
+  const target = ambient && ambient.children ? ambient.children.find(isEqual) : null
   if (target) {
     ambient = removeChild(target, ambient)
     ambient.children.push(Object.assign({}, child))

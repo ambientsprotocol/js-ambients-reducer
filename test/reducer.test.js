@@ -19,7 +19,7 @@ const reduceToNormalForm = (ambient) => {
   let iteration = 1
   while (true) {
     program = reduceAmbient(program.ambient, program.parent)
-    let newTree = ambientTreeToString(program.ambient)
+    let newTree = ambientTreeToString(program.ambient, false)
     if (newTree === currentTree) {
       console.log('--- Reduction done ---')
       break
