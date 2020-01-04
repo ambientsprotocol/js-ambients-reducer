@@ -2,8 +2,8 @@ const Capability = require('./capability')
 const primitiveTypes = require('./primitive-types')
 const { isDefined } = require('./utils')
 
-const create = (name, children, capabilities, meta = {}) => {
-  return { name, children, capabilities, meta: Object.assign({}, meta) }
+const create = (name, children, capabilities, meta = {}, transitions = []) => {
+  return { name, children, capabilities, meta: Object.assign({}, meta), transitions }
 }
 
 const fromJson = (json) => {
