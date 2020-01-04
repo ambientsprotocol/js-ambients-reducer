@@ -60,6 +60,8 @@ const applyOperation = (capability, ambient, parent, callback, step = -1) => {
         callback('create', capability, ambient, step, { source: ambient.name, target: substitute })
       }
 
+      console.log(">>", step, "[" + ambient.name + "]", op, name)
+
       const res = applyAtomicOps(ambient, parent, callback, step)
       if (res.parent) ambient = replaceChild(res.ambient, res.parent)
     } else if (cap) {
@@ -69,6 +71,9 @@ const applyOperation = (capability, ambient, parent, callback, step = -1) => {
       if (callback) {
         callback('create', capability, ambient, step, { source: ambient.name, target: name })
       }
+
+      console.log(">>", step, "[" + ambient.name + "]", op, name)
+
       const res = applyAtomicOps(created, ambient, callback, step)
       ambient = replaceChild(res.ambient, res.parent)
     }
@@ -80,29 +85,33 @@ const applyOperation = (capability, ambient, parent, callback, step = -1) => {
 
     const targetName = ambient.meta[name] || name
     let target = ambient.children.find(e => e.name === targetName)
-    if (!target) throw new Error('Target not found!')
 
-    const cocap = target.capabilities.find(e => e.op === 'write_')
-    if (!cocap) throw new Error('Co-Capability not found')
+    if (target) {
+      const cocap = target.capabilities.find(e => e.op === 'write_')
 
-    const valuesToWrite = cap.args.slice(1, cap.args.length).map(e => {
-      return e.subst ? ambient.meta[e.subst] : (ambient.meta[e] || e)
-    })
+      if (cocap) {
+        const valuesToWrite = cap.args.slice(1, cap.args.length).map(e => {
+          return e.subst ? ambient.meta[e.subst] : (ambient.meta[e] || e)
+        })
 
-    target = consumeCapability(cocap, target)
-    target = addMeta(cocap.args, valuesToWrite, target)
-    ambient = consumeCapability(cap, ambient)
+        target = consumeCapability(cocap, target)
+        target = addMeta(cocap.args, valuesToWrite, target)
+        ambient = consumeCapability(cap, ambient)
 
-    if (callback) {
-      callback('write', cap, ambient, step, { source: ambient.name, target: name, args: valuesToWrite })
-      callback('write_', cocap, target, step, { source: name, caller: ambient.name, args: cocap.args })
-    }
+        if (callback) {
+          callback('write', cap, ambient, step, { source: ambient.name, target: name, args: valuesToWrite })
+          callback('write_', cocap, target, step, { source: name, caller: ambient.name, args: cocap.args })
+        }
 
-    const res = applyAtomicOps(target, ambient, callback, step)
-    ambient = res.parent
+        console.log(">>", step, "[" + ambient.name + "]", op, name)
 
-    if (parent) {
-      parent = replaceChild(ambient, parent)
+        const res = applyAtomicOps(target, ambient, callback, step)
+        ambient = res.parent
+
+        if (parent) {
+          parent = replaceChild(ambient, parent)
+        }
+      }
     }
   } else if (op === 'read') {
     const targetName = ambient.meta[name] || name
@@ -126,6 +135,8 @@ const applyOperation = (capability, ambient, parent, callback, step = -1) => {
           callback('read_', cocap, target, step, { source: name, caller: ambient.name, values: values })
         }
 
+        console.log(">>", step, "[" + ambient.name + "]", op, name)
+
         const res = applyAtomicOps(ambient, parent, callback, step)
         ambient = res.ambient
         if (parent) {
@@ -138,6 +149,8 @@ const applyOperation = (capability, ambient, parent, callback, step = -1) => {
     if (!isDefined(substitute)) throw new Error('Substitute value not found from meta')
 
     ambient = consumeCapability(cap, ambient)
+
+    console.log(">>", step, "[" + ambient.name + "]", op, name)
 
     if (substitute.op) {
       // If the value is a capability (or an an op), add them as capabilities
@@ -170,10 +183,14 @@ const applyOperation = (capability, ambient, parent, callback, step = -1) => {
         callback('in', cap, ambient, step)
         callback('in_', cocap, target, step)
       }
+      console.log(">>", step, "[" + ambient.name + "]", op, name)
     }
   }
 
-  return { parent: parent ? Object.assign({}, parent) : parent, ambient: Object.assign({}, ambient) }
+  return {
+    parent: parent ? Object.assign({}, parent) : parent,
+    ambient: Object.assign({}, ambient)
+  }
 }
 
 const reduceAmbient = (ambient, parent = null, callback, step = 0) => {

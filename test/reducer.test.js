@@ -18,14 +18,15 @@ const reduceToNormalForm = (ambient) => {
   console.log(currentTree)
   let iteration = 1
   while (true) {
+    console.log('--- Step', iteration++, '------------')
     program = reduceAmbient(program.ambient, program.parent)
     let newTree = ambientTreeToString(program.ambient, false)
     if (newTree === currentTree) {
       console.log('--- Reduction done ---')
       break
     }
-    console.log('--- Step', iteration++, '------------')
-    console.log(newTree)
+    // console.log(newTree)
+    console.log()
     currentTree = newTree
   }
   return program

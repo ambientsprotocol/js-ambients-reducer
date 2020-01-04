@@ -11,14 +11,14 @@ const fromJson = (json) => {
 }
 
 const addChild = (child, ambient) => {
-  ambient.children.push(Object.assign({}, child))
-  return Object.assign({}, ambient)
+  ambient.children = [...ambient.children, child]
+  return ambient
 }
 
 const removeChild = (child, ambient) => {
   const isNotEqual = (e) => e.name !== child.name
   ambient.children = ambient.children.filter(isNotEqual)
-  return Object.assign({}, ambient)
+  return ambient
 }
 
 const replaceChild = (child, ambient) => {
@@ -26,14 +26,14 @@ const replaceChild = (child, ambient) => {
   const target = ambient && ambient.children ? ambient.children.find(isEqual) : null
   if (target) {
     ambient = removeChild(target, ambient)
-    ambient.children.push(Object.assign({}, child))
+    ambient = addChild(child, ambient)
   }
-  return Object.assign({}, ambient)
+  return ambient
 }
 
 const addCapabilities = (capabilities, ambient) => {
   ambient.capabilities = [...ambient.capabilities, ...capabilities]
-  return Object.assign({}, ambient)
+  return ambient
 }
 
 const getCapability = (op, targetName, ambient) => {
